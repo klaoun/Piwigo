@@ -198,6 +198,12 @@ class SMTP
         'Mailjet' => '/[\d]{3} OK queued as (.*)/',
     ];
 
+    
+    public static $xclient_allowed_attributes = [
+        'NAME', 'ADDR', 'PORT', 'PROTO', 'HELO', 'LOGIN', 'DESTADDR', 'DESTPORT'
+    ];
+
+    
     /**
      * The last transaction ID issued in response to a DATA command,
      * if one was detected.
@@ -971,6 +977,22 @@ class SMTP
         );
     }
 
+    
+   public function xclient(array $vars)
+    {
+        $xclient_options = "";
+        foreach ($vars as $key => $value) {
+            if (in_array($key, SMTP::$xclient_allowed_attributes)) {
+                $xclient_options .= " {$key}={$value}";
+            }
+        }
+        if (!$xclient_options) {
+            return true;
+        }
+        return $this->sendCommand('XCLIENT', 'XCLIENT' . $xclient_options, 250);
+    }
+
+    
     /**
      * Send an SMTP RSET command.
      * Abort any transaction that is currently in progress.
