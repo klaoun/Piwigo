@@ -4064,9 +4064,17 @@ class PHPMailer
     {
         foreach ($this->CustomHeader as $k => $pair) {
             if ($pair[0] == $name) {
+                      if (strpbrk($name . $value, "\r\n") !== false) {
+                    if ($this->exceptions) {
+                        throw new Exception($this->lang('invalid_header'));
+                    }
+
+                    return false;
+                }
                 $this->CustomHeader[$k] = [$name, $value];
             }
         }
+         return true;
     }
 
 
