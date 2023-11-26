@@ -357,6 +357,15 @@ class PHPMailer
      */
     public $AuthType = '';
 
+    
+    /**
+     * SMTP SMTPXClient command attibutes
+     *
+     * @var array
+     */
+    protected $SMTPXClient = [];
+
+    
     /**
      * An implementation of the PHPMailer OAuthTokenProvider interface.
      *
@@ -1997,6 +2006,40 @@ class PHPMailer
         return $this->smtp;
     }
 
+     /**
+     * Provide SMTP XCLIENT attributes
+     *
+     * @param string $name  Attribute name
+     * @param ?string $value Attribute value
+     *
+     * @return bool
+     */
+    public function setSMTPXclientAttribute($name, $value)
+    {
+        if (!in_array($name, SMTP::$xclient_allowed_attributes)) {
+            return false;
+        }
+        if (isset($this->SMTPXClient[$name]) && $value === null) {
+            unset($this->SMTPXClient[$name]);
+        } elseif ($value !== null) {
+            $this->SMTPXClient[$name] = $value;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get SMTP XCLIENT attributes
+     *
+     * @return array
+     */
+    public function getSMTPXclientAttributes()
+    {
+        return $this->SMTPXClient;
+    }
+
+
+    
     /**
      * Send mail via SMTP.
      * Returns false if there is a bad MAIL FROM, RCPT, or DATA input.
@@ -2025,6 +2068,12 @@ class PHPMailer
         } else {
             $smtp_from = $this->Sender;
         }
+
+         if (count($this->SMTPXClient)) {
+            $this->smtp->xclient($this->SMTPXClient);
+        }
+
+        
         if (!$this->smtp->mail($smtp_from)) {
             $this->setError($this->lang('from_failed') . $smtp_from . ' : ' . implode(',', $this->smtp->getError()));
             throw new Exception($this->ErrorInfo, self::STOP_CRITICAL);
